@@ -1,0 +1,111 @@
+Scene:
+  properties:
+    name:
+      example: Movie Time
+      type: string
+    devices:
+      readOnly: true
+      description: |
+        List of member Device IDs.
+
+        This field is read-only after scene creation.
+        Use the Scene Devices endpoint's POST/DELETE
+        methods to add/remove Devices and Groups from the Scene,
+        or the PATCH endpoint to change the Action or Argument,
+        or to change the execution order.
+      type: array
+      example:
+        - ["aabbccdd", "TurnLightOff", ""]
+        - ["11223344", "SetSpeed", "1"]
+        - ["deadbeef", "Close", ""]
+    type:
+      readOnly: true
+      description: |
+        For values, see `type` field of Device schema.
+
+        Type is automatically set by the Bond Bridge to be the type of the
+        underlying devices when all devices are of the same type. Note that
+        Scene type is always an array, even if it has zero or one element.
+
+        When devies of multiple types are mixed in a single Scene,
+        this `type` lists each type.
+        For example, a Ceiling Fan (CF) and a Light (LT) combined would be
+        ["CF", "LT"] (with the order being aribitrary).
+      example:
+        - "MS"
+      type: array
+    location:
+      readOnly: true
+      example:
+         - Kitchen
+      type: array
+      description: |
+        Similar to `type`, if all Devices in the Scene are in the same Location,
+        this field will be an array with a single string. However, when Devices
+        from multiple Locations are combined in one Scene, this field lists
+        each unique Location in arbitrary order.
+    actions:
+      readOnly: true
+      type: array
+      example:
+        - "Activate"
+      description: |
+        Scenes always have exactly one action called "Activate".
+    state:
+      readOnly: true
+      type: object
+      example:
+        _: "ad9bcde4"
+        "active": true
+  required:
+  - name
+
+SceneList:
+  type: object
+  example:
+    _: "7fc1e84b"
+    3b20f300:
+        _: "9a5e1136"
+    4caf6472:
+        _: "409d124b"
+State:
+  example:
+    active: true
+
+SceneDevice:
+  properties:
+    device:
+      example: "aabbccdd"
+      type: string
+      description: |
+        ID of Device or Group.
+    action:
+      example: "SetSpeed"
+      type: string
+      description: |
+        Action to run on Device or Group
+    argument:
+      example: "2"
+      type: string
+      description: |
+        Argument for Action, if required. (JSON rendered as string)
+    order:
+      example: 10000
+      type: integer
+      description: |
+        If not provided, order of a new Scene Device is the highest
+        order of other Scene Devices plus 10000.
+
+        When activating a Scene, Bond Bridge executes device actions
+        with lowest order first. This order is only ensured within a single
+        Bridge. For Scenes that span multiple Bridges, Scenes including SBB
+        devices, some concurrent execution will occur.
+
+        The order should be used by the client to enforce display order
+        in Scene editing. However, care should be taken with this UX
+        when multiple Bonds are involved, due to the concurrent execution
+        and irrelevence of the order in that case.
+
+        (32-bit unsigned integer)
+  required:
+  - devices

@@ -31,10 +31,17 @@ x-tagGroups:
       - Group State
       - Group Properties
       - Group Actions
+  - name: Scenes
+    tags:
+      - Scenes
+      - Scene Devices
+      - Scene State
+      - Scene Actions
   - name: Schedules
     tags:
       - Device Schedules
       - Group Schedules
+      - Scene Schedules
   - name: Bridge
     tags:
       - Bridge

@@ -1,0 +1,54 @@
+ActionPath:
+  put:
+    $ref: ../actions/scene-paths.yaml#/Put
+  parameters:
+  - in: path
+    name: action_name
+    required: true
+    schema:
+      type: string
+  - in: path
+    name: scene_id
+    required: true
+    schema:
+      type: number
+
+Put:
+  requestBody:
+    content:
+      application/json:
+        schema:
+          type: object
+          example:
+            argument: 4
+  responses:
+    '200':
+      description: Action executed
+      content:
+        application/json:
+          schema:
+            type: object
+            example:
+              argument: 4
+    '400':
+      $ref: ../common/responses.yaml#/BadRequest
+    '401':
+      $ref: ../common/responses.yaml#/Unauthorized
+    '500':
+      $ref: ../common/responses.yaml#/InternalServerError
+  summary: Activate a Scene
+  description: |
+    `action_name` must be "Activate". In other words,
+    a Scene supports exactly one action called "Activate".
+
+    This endpoint blocks until confirmation that the Bond has executed
+    (but not necessarily fulfilled)
+    the Actions on all member Devices. Timeout shall be no more than 7 seconds.
+
+    To check the resulting state, the client may query
+    `/scenes/{scene_id}/state`, but the member Device and Group States
+    are also updated.
+  tags:
+  - Scene Actions
+  security:
+    - OAuth: ["oauth2"]

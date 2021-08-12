@@ -1,0 +1,316 @@
+ScenesPath:
+  get:
+    description: |
+      Returns a list of Scene IDs and the corresponding Scene hashes.
+      The hashes change if any part of the Scene (its name, state, type, etc.)
+      has changed. The hash is not updated if underlying Devices or Groups
+      are updated in a way which does not effect the Scene state or type.
+
+      Scenes are only supported on Bond Bridges, not on Smart by Bond.
+      Furthermore, Scenes may only include Devices and Groups on the same Bridge.
+    responses:
+      '200':
+        content:
+          application/json:
+            schema:
+              $ref: schemas.yaml#/SceneList
+        description: List Scenes
+      '401':
+        $ref: ../common/responses.yaml#/Unauthorized
+      '500':
+        $ref: ../common/responses.yaml#/InternalServerError
+    security:
+      - OAuth: ["oauth2"]
+    summary: List your Scenes
+    tags:
+    - Scenes
+  post:
+    requestBody:
+      content:
+        application/json:
+          schema:
+            $ref: ../scenes/schemas.yaml#/Scene
+    responses:
+      '201':
+        $ref: ../common/responses.yaml#/Created
+      '400':
+        $ref: ../common/responses.yaml#/BadRequest
+      '401':
+        $ref: ../common/responses.yaml#/Unauthorized
+      '409':
+        $ref: ../common/responses.yaml#/Conflict
+      '500':
+        $ref: ../common/responses.yaml#/InternalServerError
+    summary: Create new Scene
+    description: |
+      For the creation of a Scene distributed across multiple Bonds,
+      clients should generate a random 64-bit ID for the Scene and provide that
+      same ID in each Scene POST request in the `_id` field. If the `_id`
+      field is not provided, a random ID will be assigned as with
+      POST requests to other enumerations.
+
+      If `devices` is not provided, an empty Scene is created.
+      If `devices` is an array of arrays of the form `[ID, action,
+      argument]`, then a Scene is created
+      containing those device actions. Using the `devices` field requires
+      the client to predetermine what devices are compatible in the sense
+      of having a non-empty Actions intersection. For this reason, it is
+      simpler for the client to make individual Scenes Devices POSTs for each
+      device to be added to the Scene, so that the Bond firmware may provide
+      a 400 error in case a device cannot be added due to incompatability.
+    tags:
+    - Scenes
+
+ScenePath:
+  get:
+    $ref: ../scenes/paths.yaml#/Get
+  parameters:
+    - in: path
+      name: scene_id
+      required: true
+      schema:
+        type: number
+  patch:
+    $ref: ../scenes/paths.yaml#/Patch
+  delete:
+    $ref: ../scenes/paths.yaml#/Delete
+
+DevicesPath:
+  post:
+    $ref: ../scenes/paths.yaml#/DevicesPost
+
+DevicePath:
+  delete:
+    $ref: ../scenes/paths.yaml#/DeviceDelete
+
+StatePath:
+  get:
+    $ref: ../scenes/paths.yaml#/GetState
+  parameters:
+  - in: path
+    name: scene_id
+    required: true
+    schema:
+      type: number
+GetList:
+  responses:
+    '200':
+      content:
+        application/json:
+          schema:
+            $ref: schemas.yaml#/SceneList
+      description: List active Scenes
+    '401':
+      $ref: ../common/responses.yaml#/Unauthorized
+    '500':
+      $ref: ../common/responses.yaml#/InternalServerError
+  security:
+    - OAuth: ["oauth2"]
+  summary: List your Scenes
+  tags:
+  - Scenes
+Post:
+  requestBody:
+    content:
+      application/json:
+        schema:
+          required: true
+          $ref: schemas.yaml#/Scene
+  responses:
+    '201':
+      $ref: ../common/responses.yaml#/Created
+    '400':
+      $ref: ../common/responses.yaml#/BadRequest
+    '401':
+      $ref: ../common/responses.yaml#/Unauthorized
+    '409':
+      $ref: ../common/responses.yaml#/Conflict
+    '500':
+      $ref: ../common/responses.yaml#/InternalServerError
+  summary: Create new Scene
+  tags:
+  - Scenes
+Get:
+  description: |
+    Scenes are collections of Devices on a single Bridge.
+  responses:
+    '200':
+      content:
+        application/json:
+          schema:
+            required: true
+            $ref: schemas.yaml#/Scene
+      description: Get Scene
+    '401':
+      $ref: ../common/responses.yaml#/Unauthorized
+    '404':
+      $ref: ../common/responses.yaml#/NotFound
+    '500':
+      $ref: ../common/responses.yaml#/InternalServerError
+  security:
+    - OAuth: ["oauth2"]
+  summary: Get Scene
+  tags:
+  - Scenes
+Patch:
+  requestBody:
+    content:
+      application/json:
+        schema:
+          required: true
+          $ref: schemas.yaml#/Scene
+          type: object
+  responses:
+    '200':
+      content:
+        application/json:
+          schema:
+            $ref: schemas.yaml#/Scene
+      description: Change Scene field
+    '401':
+      $ref: ../common/responses.yaml#/Unauthorized
+    '404':
+      $ref: ../common/responses.yaml#/NotFound
+    '500':
+      $ref: ../common/responses.yaml#/InternalServerError
+  security:
+  - BasicAuth: []
+  summary: Change Scene field
+  description: |
+    To add or remove Devices from the Scene,
+    use the Scene Devices endpoint's PUT and DELETE methods instead of this one.
+  tags:
+  - Scenes
+Delete:
+  responses:
+    '204':
+      description: Delete Scene
+    '401':
+      $ref: ../common/responses.yaml#/Unauthorized
+    '404':
+      $ref: ../common/responses.yaml#/NotFound
+    '500':
+      $ref: ../common/responses.yaml#/InternalServerError
+  security:
+  - BasicAuth: []
+  summary: Delete Scene
+  description: |
+    The entire Scene is deleted.
+  tags:
+  - Scenes
+
+DevicesPost:
+  parameters:
+  - in: path
+    name: scene_id
+    required: true
+    schema:
+      type: string
+  requestBody:
+    content:
+      application/json:
+        schema:
+          properties:
+            device:
+              example: "aabbccdd"
+              type: string
+              description: |
+                ID of Device or Group to add
+            action:
+              example: "SetSpeed"
+              type: string
+              description: |
+                Action to run on Device or Group
+            argument:
+              example: "2"
+              type: string
+              description: |
+                Argument for Action, if required. (JSON rendered as string)
+            order:
+              example: 10000
+  responses:
+    '204':
+      description: Add Device to Scene
+    '401':
+      $ref: ../common/responses.yaml#/Unauthorized
+    '404':
+      $ref: ../common/responses.yaml#/NotFound
+    '500':
+      $ref: ../common/responses.yaml#/InternalServerError
+  security:
+  - BasicAuth: []
+  summary: Add Device to Scene
+  description: |
+    Device or Group with the specified ID is added to the Scene.
+
+    A gratuitous update of the corresponding Scene endpoint will occur
+    to update clients as to the new devices, actions, state, and properties.
+  tags:
+  - Scene Devices
+
+DeviceDelete:
+  parameters:
+  - in: path
+    name: scene_id
+    required: true
+    schema:
+      type: string
+  - in: path
+    name: device_id
+    required: true
+    schema:
+      type: string
+  responses:
+    '204':
+      description: Remove Device from Scene
+    '401':
+      $ref: ../common/responses.yaml#/Unauthorized
+    '404':
+      $ref: ../common/responses.yaml#/NotFound
+    '500':
+      $ref: ../common/responses.yaml#/InternalServerError
+  security:
+  - BasicAuth: []
+  summary: Remove Device from Scene
+  description: |
+    Device or Group with the ID specified in the URL is removed from the Scene.
+
+    A gratuitous update of the corresponding Scene endpoint will occur
+    to update clients as to the new devices, actions, state, and properties.
+  tags:
+  - Scene Devices
+
+GetState:
+  responses:
+    '200':
+      content:
+        application/json:
+          schema:
+            $ref: schemas.yaml#/State
+      description: Get Scene State
+    '401':
+      $ref: ../common/responses.yaml#/Unauthorized
+    '404':
+      $ref: ../common/responses.yaml#/NotFound
+    '500':
+      $ref: ../common/responses.yaml#/InternalServerError
+  security:
+    - OAuth: ["oauth2"]
+  summary: Get Scene State
+  description: |
+    Scene State has just a single member variable `active`.
+
+    After Activating a Scene, the `active` variable is set to `true`.
+    Any further actions called on any member Devices or Groups will cause `active`
+    to change to `false`. This occurs even if the Device Action did not cause
+    the device's state to change. Furthermore, the Scene's `active` variable
+    will not become `true` as a result of independent Device State changes,
+    even if Devices enter a state that they would reach after Scene activation.
+
+    The purpose of the `active` variable is simply to show a persistent feedback
+    to the user of an integration that the Scene was successfully activated.
+    Multiple Scenes may show as activated, but only if they have no mutual Devices.
+
+    Note that Scene states cannot be PATCHed.
+  tags:
+  - Scene State
