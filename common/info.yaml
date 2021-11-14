@@ -922,6 +922,8 @@ description: |
 
   - **Open()**: Open the device.
   - **Close()**: Close the device.
+  - **TiltOpen()**: Open the tilt device.
+  - **TiltClose()**: Close the tilt device.
   - **ToggleOpen()**: Close the device if it's open, open it if it's closed
 
   ### Notes
